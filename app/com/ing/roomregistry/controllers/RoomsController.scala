@@ -1,10 +1,11 @@
-package controllers
+package com.ing.roomregistry.controllers
 
 import java.time.LocalDateTime
 
+import com.ing.roomregistry.model.JsonSerialization._
+import com.ing.roomregistry.model._
+import com.ing.roomregistry.util.{Availability, Validation}
 import javax.inject._
-import model.Serialization._
-import model._
 import play.api.libs.json._
 import play.api.mvc._
 
@@ -33,18 +34,16 @@ class RoomsController @Inject()(cc: ControllerComponents, repo: RoomRepository) 
   
   def bookRoom(name: String) = Action(parse.json) { request =>
     val maybeRoom: Option[Room] = repo.findRoom(name)
-    if (maybeRoom.isEmpty) {
+    if (maybeRoom.isEmpty) {      // TODO flatmap over either for these two first checks?
       NotFound
     } else {
       val bookingResult: JsResult[Booking] = request.body.validate[Booking]
       if (bookingResult.isError) {
         BadRequest("Invalid Json")
       } else {
-        // TODO validate both room and bookingResult
-        // TODO and validate that there is no booking conflict, that it's not in the past, etc. Probably use Cats Validated here.
-        val valid = Availability.validateBooking(maybeRoom.get, bookingResult.get)
+        val valid = Validation.validateBooking(maybeRoom.get, bookingResult.get)
         if (valid) {
-          repo.addBooking(name, bookingResult.get)
+          repo.addBooking(maybeRoom.get, bookingResult.get)
           Ok("Booking successful")
         } else {
           BadRequest("Invalid booking")

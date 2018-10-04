@@ -1,5 +1,5 @@
-GET     /rooms                      controllers.RoomsController.listAllRooms
+GET     /rooms                      com.ing.roomregistry.controllers.RoomsController.listAllRooms
 
-GET     /rooms/:name                controllers.RoomsController.roomDetails(name: String)
+GET     /rooms/:name                com.ing.roomregistry.controllers.RoomsController.roomDetails(name: String)
 
-POST    /rooms/:name                controllers.RoomsController.bookRoom(name: String)
+POST    /rooms/:name                com.ing.roomregistry.controllers.RoomsController.bookRoom(name: String)

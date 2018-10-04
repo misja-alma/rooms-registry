@@ -1,4 +1,4 @@
-package model
+package com.ing.roomregistry.model
 
 // TODO check if a list is the most handy datatype. It should be sorted but also allow fast insert. Maybe a tree?
 // Or maybe an in-mem db is best after all ..

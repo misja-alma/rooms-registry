@@ -1,17 +1,16 @@
-package model
+package com.ing.roomregistry.model
 
 import java.time.{Duration, LocalDateTime}
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsPath, Reads, Writes}
 
-object Serialization {
+object JsonSerialization {
 
   implicit val bookingWrites: Writes[Booking] = (
     (JsPath \ "time").write[LocalDateTime] and
       (JsPath \ "duration").write[Duration]
     )(unlift(Booking.unapply))
-
 
   implicit val bookingReads: Reads[Booking] = (
     (JsPath \ "time").read[LocalDateTime] and

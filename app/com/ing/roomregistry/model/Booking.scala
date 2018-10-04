@@ -1,4 +1,4 @@
-package model
+package com.ing.roomregistry.model
 
 import java.time.{Duration, LocalDateTime}
 

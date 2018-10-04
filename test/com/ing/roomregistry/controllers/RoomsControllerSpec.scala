@@ -1,9 +1,9 @@
-package controllers
+package com.ing.roomregistry.controllers
 
 import java.time.{Duration, LocalDateTime}
 
-import model.Serialization._
-import model.{Booking, Room, RoomAvailability, RoomRepository}
+import com.ing.roomregistry.model.JsonSerialization._
+import com.ing.roomregistry.model.{Booking, Room, RoomAvailability, RoomRepository}
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice._
 import play.api.libs.json.Json
