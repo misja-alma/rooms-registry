@@ -1,11 +1,10 @@
 package com.ing.roomregistry.util
 
-import java.time.{Duration, LocalDate, LocalDateTime, LocalTime}
+import java.time.{Duration, LocalDate}
 
 import com.ing.roomregistry.model.{Booking, Room}
-import org.scalatestplus.play.PlaySpec
 
-class AvailabilitySpec extends PlaySpec {
+class AvailabilitySpec extends BaseSpec {
 
   private val date = LocalDate.of(2018, 10, 10)
   private val bookings = List(
@@ -69,7 +68,4 @@ class AvailabilitySpec extends PlaySpec {
       Availability.isRoomAvailableAt(room, timeBeforeStart, Duration.ofMinutes(60)) mustBe false
     }
   }
-  
-  def dateTime(date: LocalDate, hours: Int, minutes: Int, seconds: Int): LocalDateTime =
-    LocalDateTime.of(date, LocalTime.of(hours, minutes, seconds, 0))
 }

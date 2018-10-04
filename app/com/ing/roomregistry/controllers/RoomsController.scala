@@ -2,51 +2,62 @@ package com.ing.roomregistry.controllers
 
 import java.time.LocalDateTime
 
+import akka.actor.ActorSystem
+import akka.pattern.ask
+import akka.util.Timeout
 import com.ing.roomregistry.model.JsonSerialization._
 import com.ing.roomregistry.model._
-import com.ing.roomregistry.util.{Availability, Validation}
+import com.ing.roomregistry.repository.RoomRepositoryActor
+import com.ing.roomregistry.repository.RoomRepositoryActor._
+import com.ing.roomregistry.util.Availability
 import javax.inject._
 import play.api.libs.json._
 import play.api.mvc._
 
-/**
- * Controls the rooms registry
- */
-@Singleton
-class RoomsController @Inject()(cc: ControllerComponents, repo: RoomRepository) extends AbstractController(cc) {
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
-  def listAllRooms() = Action { request: Request[AnyContent] =>
+
+@Singleton
+class RoomsController @Inject()(system: ActorSystem,
+                                cc: ControllerComponents)
+                               (implicit ec: ExecutionContext) extends AbstractController(cc) {
+
+  implicit val repoTimeout: Timeout = 5.seconds
+
+  private val repoActor = system.actorOf(RoomRepositoryActor.props, "room-repository-actor")
+
+  def listAllRooms() = Action.async { request: Request[AnyContent] =>
     val now = LocalDateTime.now()
-    val sortedRooms = repo.allRooms.toList.sortBy(_.name)
-    val roomsWithAvailability = sortedRooms.map(room => RoomAvailability(room.name, Availability.isRoomAvailableAt(room, now)))
-    Ok(Json.toJson(roomsWithAvailability))
+    (repoActor ? GetAllRooms()).mapTo[Iterable[Room]].map { allRooms =>
+      val sortedRooms = allRooms.toList.sortBy(_.name)
+      val roomsWithAvailability = sortedRooms.map(room =>
+        RoomAvailability(room.name, Availability.isRoomAvailableAt(room, now)))
+      Ok(Json.toJson(roomsWithAvailability))
+    }
   }
 
-  def roomDetails(name: String) = Action { request: Request[AnyContent] =>
-    val maybeRoom = repo.findRoom(name)
-    if (maybeRoom.isDefined) {
-      val json = Json.toJson(maybeRoom.get)
-      Ok(json)
-    } else {
-      NotFound
+  def roomDetails(name: String) = Action.async { request: Request[AnyContent] =>
+    (repoActor ? FindRoom(name)).mapTo[Option[Room]].map { maybeRoom =>
+      maybeRoom.map { room =>
+        val json = Json.toJson(room)
+        Ok(json)
+      }.getOrElse (
+        NotFound
+      )
     }
   }
   
-  def bookRoom(name: String) = Action(parse.json) { request =>
-    val maybeRoom: Option[Room] = repo.findRoom(name)
-    if (maybeRoom.isEmpty) {      // TODO flatmap over either for these two first checks?
-      NotFound
+  def bookRoom(name: String) = Action(parse.json).async { request =>
+    val parsedBooking = request.body.validate[Booking]
+    if (parsedBooking.isError) {
+      Future.successful(BadRequest("Invalid Json"))
     } else {
-      val bookingResult: JsResult[Booking] = request.body.validate[Booking]
-      if (bookingResult.isError) {
-        BadRequest("Invalid Json")
-      } else {
-        val valid = Validation.validateBooking(maybeRoom.get, bookingResult.get)
-        if (valid) {
-          repo.addBooking(maybeRoom.get, bookingResult.get)
+      (repoActor ? AddBooking(name, parsedBooking.get)).mapTo[Either[String, Room]].map { updatedRoomOrError =>
+        if (updatedRoomOrError.isRight) {
           Ok("Booking successful")
         } else {
-          BadRequest("Invalid booking")
+          BadRequest(updatedRoomOrError.left.get)
         }
       }
     }

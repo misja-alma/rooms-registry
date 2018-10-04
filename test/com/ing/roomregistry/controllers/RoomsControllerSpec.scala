@@ -3,7 +3,8 @@ package com.ing.roomregistry.controllers
 import java.time.{Duration, LocalDateTime}
 
 import com.ing.roomregistry.model.JsonSerialization._
-import com.ing.roomregistry.model.{Booking, Room, RoomAvailability, RoomRepository}
+import com.ing.roomregistry.model.{Booking, Room, RoomAvailability}
+import com.ing.roomregistry.repository.RoomRepository
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice._
 import play.api.libs.json.Json
@@ -69,12 +70,12 @@ class RoomsControllerSpec extends PlaySpec with GuiceOneAppPerTest with Injectin
       room.get.bookings.head mustBe newBooking
     }
 
-    "return http 404 when the room does not exist" in {
+    "return http 400 when the room does not exist" in {
       val newBooking = Booking(LocalDateTime.now(), Duration.ofMinutes(25))
       val postRequest = FakeRequest(POST, "/rooms/Foo").withJsonBody(Json.toJson(newBooking))
       val result = route(app, postRequest).get
 
-      status(result) mustBe NOT_FOUND
+      status(result) mustBe BAD_REQUEST
     }
   }
 }

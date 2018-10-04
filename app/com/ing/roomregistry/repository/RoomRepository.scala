@@ -1,11 +1,11 @@
-package com.ing.roomregistry.model
+package com.ing.roomregistry.repository
 
+import com.ing.roomregistry.model.{Booking, Room}
 
-// TODO this should be called from an Actor to avoid concurrency issues.
-//      in particular the addBooking + the validation should be in an atomic block.
 class RoomRepository {
+  import RoomRepository._
 
-  private val rooms = collection.mutable.Map(RoomRepository.initialRooms.toSeq: _*)
+  private val rooms = collection.mutable.Map(initialRooms.toSeq: _*)
 
   def allRooms: Iterable[Room] = rooms.values
 
