@@ -1,0 +1,5 @@
+GET     /rooms                      controllers.RoomsController.listAllRooms
+
+GET     /rooms/:name                controllers.RoomsController.roomDetails(name: String)
+
+POST    /rooms/:name                controllers.RoomsController.bookRoom(name: String)
