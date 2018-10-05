@@ -2,17 +2,17 @@ package com.ing.roomregistry.controllers
 
 import java.time.{Duration, LocalDateTime}
 
+import com.ing.roomregistry.BaseSpec
 import com.ing.roomregistry.model.JsonSerialization._
 import com.ing.roomregistry.model.{Booking, Room, RoomAvailability}
 import com.ing.roomregistry.repository.RoomRepository
-import org.scalatestplus.play._
 import org.scalatestplus.play.guice._
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.api.test._
 
 
-class RoomsControllerSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
+class RoomsControllerSpec extends BaseSpec with GuiceOneAppPerTest with Injecting {
 
   "RoomsController GET /rooms" should {
 

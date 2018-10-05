@@ -1,4 +1,4 @@
-package com.ing.roomregistry.util
+package com.ing.roomregistry
 
 import java.time.{LocalDate, LocalDateTime, LocalTime}
 

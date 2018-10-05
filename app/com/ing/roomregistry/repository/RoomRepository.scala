@@ -1,6 +1,12 @@
 package com.ing.roomregistry.repository
 
 import com.ing.roomregistry.model.{Booking, Room}
+import com.typesafe.config.ConfigFactory
+import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
+import play.api.libs.json.Json
+
+import scala.util.Try
 
 class RoomRepository {
   import RoomRepository._
@@ -22,9 +28,31 @@ class RoomRepository {
 }
 
 object RoomRepository {
+  import com.ing.roomregistry.model.JsonSerialization._
 
-  // TODO read from config. Maybe a serialized json. Or alternatively, use a db and initialize with a db script.
-  val roomNames = List("London", "Paris", "Berlin", "Amsterdam")
+  private val logger = Logger(LoggerFactory.getLogger("RoomRepository"))
 
-  def initialRooms: Map[String, Room] = roomNames.map(name => name -> Room(name, List())).toMap
+  def initialRooms: Map[String, Room] = {
+    val result = Try {
+      val roomsFile = ConfigFactory.load().getString("rooms-registry.initial-rooms-json")
+      val json = Json.parse(getClass.getResourceAsStream(roomsFile))
+      Json.fromJson[List[Room]](json)
+        .asEither
+        .map(
+          _.map(room => room.name -> room).toMap
+        ).left.map {
+          error => error.mkString
+        }
+    }.recover {
+      case ex => Left(s"Exception while initializing the room repository: $ex")
+    }.get
+
+    if (result.isLeft) {
+      logger.error(result.left.get)
+      sys.error("Could not initialize the room repository")
+    } else {
+      logger.info("Successfully initialized the room repository")
+      result.right.get
+    }
+  }
 }

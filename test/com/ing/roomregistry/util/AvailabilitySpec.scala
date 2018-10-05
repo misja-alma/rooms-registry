@@ -2,6 +2,7 @@ package com.ing.roomregistry.util
 
 import java.time.{Duration, LocalDate}
 
+import com.ing.roomregistry.BaseSpec
 import com.ing.roomregistry.model.{Booking, Room}
 
 class AvailabilitySpec extends BaseSpec {

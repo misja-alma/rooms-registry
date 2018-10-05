@@ -32,7 +32,7 @@
   <logger name="com.avaje.ebeaninternal.server.lib.BackgroundThread" level="OFF" />
 
   <root level="WARN">
-    <!--<appender-ref ref="ASYNCFILE" />-->
+    <appender-ref ref="ASYNCFILE" />
     <appender-ref ref="ASYNCSTDOUT" />
   </root>
 
