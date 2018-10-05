@@ -41,7 +41,10 @@ class RoomsController @Inject()(system: ActorSystem,
       val roomsWithAvailability = sortedRooms.map(room =>
         RoomAvailability(room.name, Availability.isRoomAvailableAt(room, now)))
       Ok(Json.toJson(roomsWithAvailability))
-    } // TODO log any error (eg timeout)
+    }.recover { case ex =>
+      logger.error ("Error when retrieving list of rooms", ex)
+      InternalServerError
+    }
   }
 
   def roomDetails(name: String) = Action.async { request: Request[AnyContent] =>
@@ -54,7 +57,10 @@ class RoomsController @Inject()(system: ActorSystem,
         Ok(json)
       }.getOrElse (
         NotFound
-      )   // TODO log any error (eg timeout)
+      )
+    }.recover { case ex =>
+      logger.error ("Error when retrieving room details", ex)
+      InternalServerError
     }
   }
   
@@ -71,7 +77,10 @@ class RoomsController @Inject()(system: ActorSystem,
         } else {
           BadRequest(updatedRoomOrError.left.get)
         }
-      }  // TODO log any error (eg timeout)
+      }.recover { case ex =>
+        logger.error ("Error when adding booking", ex)
+        InternalServerError
+      }
     }
   }
 }
