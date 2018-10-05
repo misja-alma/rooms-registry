@@ -31,20 +31,15 @@ object Validation {
   }
 
   private def validateDuration(booking: Booking): Option[String] =
-    if (booking.duration.isZero)
-      Some("The duration should be bigger than zero")
-    else
-      None
+    validate (!booking.duration.isZero, "The duration should be bigger than zero")
 
   private def validateStartTime(booking: Booking): Option[String] =
-    if (booking.time.isBefore(LocalDateTime.now()))
-      Some("The booking should not start in the past")
-    else
-      None
+    validate (!booking.time.isBefore(LocalDateTime.now()), "The booking should not start in the past")
 
   private def validateBookingConflict(room: Room, booking: Booking): Option[String] =
-    if (isRoomAvailableAt(room, booking.time, booking.duration))
-      None
-    else
-      Some("The booking time conflicts with another booking")
+    validate (isRoomAvailableAt(room, booking.time, booking.duration),
+      "The booking time conflicts with another booking")
+
+  private def validate(validation: Boolean, errorMessage: String): Option[String] =
+    if (validation) None else Some(errorMessage)
 }

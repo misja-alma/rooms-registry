@@ -8,6 +8,8 @@ object Availability {
 
   /**
     * Returns true if at the given time the room is not booked.
+    * For a booking, the time range is [time, time + duration >
+    * I.e. the start time is inclusive, the end time exclusive.
     */
   def isRoomAvailableAt(room: Room, time: LocalDateTime): Boolean = {
     noBookingExistsWhichContainsStartTime(time, room)
@@ -15,6 +17,8 @@ object Availability {
 
   /**
     * Returns true if the room is not booked at the given time until after the given duration.
+    * For a booking, the time range is [time, time + duration >
+    * I.e. the start time is inclusive, the end time exclusive.
     */
   def isRoomAvailableAt(room: Room, time: LocalDateTime, duration: Duration): Boolean = {
     noBookingExistsWhichContainsStartTime(time, room) &&
