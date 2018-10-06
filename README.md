@@ -1,12 +1,12 @@
-#Room Registry
+# Room Registry
 
 An application that offers a REST Api for managing conference room bookings.
 
-####Usage
+#### Usage
 
 Start the server (default port is 9000) with: `sbt run`
 
-####REST endpoints
+#### REST endpoints
 
 ```
 GET  /rooms             gives a list of all rooms with their current availability
