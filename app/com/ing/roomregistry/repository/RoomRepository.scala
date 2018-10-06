@@ -1,17 +1,18 @@
 package com.ing.roomregistry.repository
 
+import com.google.inject.Inject
 import com.ing.roomregistry.model.{Booking, Room}
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.Config
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
 
 import scala.util.Try
 
-class RoomRepository {
+class RoomRepository @Inject() (config: Config) {
   import RoomRepository._
 
-  private val rooms = collection.mutable.Map(initialRooms.toSeq: _*)
+  private val rooms = collection.mutable.Map(loadInitialRooms(config).toSeq: _*)
 
   def allRooms: Iterable[Room] = rooms.values
 
@@ -32,9 +33,9 @@ object RoomRepository {
 
   private val logger = Logger(LoggerFactory.getLogger("RoomRepository"))
 
-  def initialRooms: Map[String, Room] = {
+  def loadInitialRooms(config: Config): Map[String, Room] = {
     val result = Try {
-      val roomsFile = ConfigFactory.load().getString("rooms-registry.initial-rooms-json")
+      val roomsFile = config.getString("rooms-registry.initial-rooms-json")
       val json = Json.parse(getClass.getResourceAsStream(roomsFile))
       Json.fromJson[List[Room]](json)
         .asEither

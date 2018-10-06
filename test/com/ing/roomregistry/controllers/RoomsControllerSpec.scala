@@ -6,6 +6,7 @@ import com.ing.roomregistry.BaseSpec
 import com.ing.roomregistry.model.JsonSerialization._
 import com.ing.roomregistry.model.{Booking, Room, RoomAvailability}
 import com.ing.roomregistry.repository.RoomRepository
+import com.typesafe.config.ConfigFactory
 import org.scalatestplus.play.guice._
 import play.api.libs.json.Json
 import play.api.test.Helpers._
@@ -13,6 +14,7 @@ import play.api.test._
 
 
 class RoomsControllerSpec extends BaseSpec with GuiceOneAppPerTest with Injecting {
+  private val config = ConfigFactory.load()
 
   "RoomsController GET /rooms" should {
 
@@ -23,7 +25,7 @@ class RoomsControllerSpec extends BaseSpec with GuiceOneAppPerTest with Injectin
       status(rooms) mustBe OK
       contentType(rooms) mustBe Some("application/json")
 
-      val allRooms = RoomRepository.initialRooms.values.toList.sortBy(_.name)
+      val allRooms = RoomRepository.loadInitialRooms(config).values.toList.sortBy(_.name)
       val availabilities = allRooms.map(room => RoomAvailability(room.name, true))
       val json = Json.toJson(availabilities)
       contentAsString(rooms) mustBe json.toString
@@ -39,7 +41,7 @@ class RoomsControllerSpec extends BaseSpec with GuiceOneAppPerTest with Injectin
       status(roomDetails) mustBe OK
       contentType(roomDetails) mustBe Some("application/json")
 
-      val json = Json.toJson(RoomRepository.initialRooms("Paris"))
+      val json = Json.toJson(RoomRepository.loadInitialRooms(config)("Paris"))
       contentAsString(roomDetails) mustBe json.toString
     }
 

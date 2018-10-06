@@ -1,6 +1,7 @@
 package com.ing.roomregistry.repository
 
 import akka.actor._
+import com.google.inject.Inject
 import com.ing.roomregistry.model.Booking
 import com.ing.roomregistry.util.Validation
 
@@ -15,10 +16,8 @@ object RoomRepositoryActor {
   case class AddBooking(roomName: String, booking: Booking)
 }
 
-class RoomRepositoryActor extends Actor {
+class RoomRepositoryActor @Inject() (repo: RoomRepository) extends Actor {
   import RoomRepositoryActor._
-
-  val repo = new RoomRepository
 
   def receive = {
     case GetAllRooms() =>

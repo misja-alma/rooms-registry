@@ -7,12 +7,12 @@ import com.ing.roomregistry.model.{Booking, Room}
 
 class ValidationSpec extends BaseSpec {
   
-  val date = LocalDate.of(2018, 10, 10)
-  val bookings = List(
+  private val date = LocalDate.of(2018, 10, 10)
+  private val bookings = List(
     Booking(dateTime(date, 11, 0, 0), Duration.ofMinutes(30)),
     Booking(dateTime(date, 13, 0, 0), Duration.ofMinutes(30))
   )
-  val room = Room("test", bookings)
+  private val room = Room("test", bookings)
 
   "validateBooking" should {
 

@@ -2,12 +2,11 @@ package com.ing.roomregistry.controllers
 
 import java.time.{LocalDateTime, ZoneOffset}
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
 import akka.util.Timeout
 import com.ing.roomregistry.model.JsonSerialization._
 import com.ing.roomregistry.model._
-import com.ing.roomregistry.repository.RoomRepositoryActor
 import com.ing.roomregistry.repository.RoomRepositoryActor._
 import com.ing.roomregistry.util.Availability
 import com.typesafe.scalalogging.Logger
@@ -22,7 +21,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class RoomsController @Inject()(system: ActorSystem,
-                                cc: ControllerComponents)
+                                cc: ControllerComponents,
+                                @Named("room-repository-actor") repoActor: ActorRef)
                                (implicit ec: ExecutionContext) extends AbstractController(cc) {
 
   implicit val repoTimeout: Timeout = 5.seconds
@@ -30,7 +30,6 @@ class RoomsController @Inject()(system: ActorSystem,
 
   private val logger = Logger(LoggerFactory.getLogger("RoomsController"))
 
-  private val repoActor = system.actorOf(RoomRepositoryActor.props, "room-repository-actor")
 
   def listAllRooms() = Action.async { request: Request[AnyContent] =>
     logger.info(s"Incoming request: $request")
@@ -63,7 +62,7 @@ class RoomsController @Inject()(system: ActorSystem,
       InternalServerError
     }
   }
-  
+
   def bookRoom(name: String) = Action(parse.json).async { request =>
     logger.info(s"Incoming request: $request")
 
