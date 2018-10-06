@@ -75,7 +75,7 @@ class RoomsController @Inject()(system: ActorSystem,
         if (updatedRoomOrError.isRight) {
           Ok("Booking successful")
         } else {
-          BadRequest(updatedRoomOrError.left.get)
+          UnprocessableEntity(updatedRoomOrError.left.get)
         }
       }.recover { case ex =>
         logger.error ("Error when adding booking", ex)
