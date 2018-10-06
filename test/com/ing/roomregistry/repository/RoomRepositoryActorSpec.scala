@@ -5,7 +5,7 @@ import java.time.{Duration, LocalDateTime}
 import akka.actor.{ActorSystem, Props}
 import akka.testkit.{DefaultTimeout, ImplicitSender, TestKit, TestProbe}
 import com.ing.roomregistry.model.{Booking, Room}
-import com.ing.roomregistry.repository.RoomRepositoryActor.AddBooking
+import com.ing.roomregistry.repository.RoomRepositoryActor.{AddBooking, BookingError}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{Matchers, WordSpecLike}
 
@@ -30,24 +30,24 @@ class RoomRepositoryActorSpec extends TestKit(ActorSystem("RoomRepositoryActorSp
       probe.expectMsg(Right(updatedRoom))
     }
 
-    "return Left with an error message when the room was not found" in {
+    "return Left with an appropriate booking error when the room was not found" in {
       val actor = createRepoActor()
       val probe = TestProbe()
       val newBooking = Booking(LocalDateTime.now().plusMinutes(5), Duration.ofMinutes(25))
 
       actor.tell(AddBooking("Foo", newBooking), probe.ref)
 
-      probe.expectMsg(Left("Room not found"))
+      probe.expectMsg(Left(BookingError(404, "Room not found")))
     }
 
-    "return Left with an error message when the booking was not valid" in {
+    "return Left with an appropriate booking error when the booking was not valid" in {
       val actor = createRepoActor()
       val probe = TestProbe()
       val invalidBooking = Booking(LocalDateTime.now().plusMinutes(5), Duration.ZERO)
 
       actor.tell(AddBooking("Paris", invalidBooking), probe.ref)
 
-      probe.expectMsg(Left("The duration should be bigger than zero"))
+      probe.expectMsg(Left(BookingError(422, "The duration should be bigger than zero")))
     }
   }
 }

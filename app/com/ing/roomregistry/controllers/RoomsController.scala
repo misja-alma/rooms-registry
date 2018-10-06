@@ -71,11 +71,12 @@ class RoomsController @Inject()(system: ActorSystem,
     if (parsedBooking.isError) {
       Future.successful(BadRequest("Invalid Json"))
     } else {
-      (repoActor ? AddBooking(name, parsedBooking.get)).mapTo[Either[String, Room]].map { updatedRoomOrError =>
+      (repoActor ? AddBooking(name, parsedBooking.get)).mapTo[Either[BookingError, Room]].map { updatedRoomOrError =>
         if (updatedRoomOrError.isRight) {
           Ok("Booking successful")
         } else {
-          UnprocessableEntity(updatedRoomOrError.left.get)
+          val error = updatedRoomOrError.left.get
+          new Status(error.httpStatus)(error.message)
         }
       }.recover { case ex =>
         logger.error ("Error when adding booking", ex)

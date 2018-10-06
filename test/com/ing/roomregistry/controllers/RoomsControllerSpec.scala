@@ -72,12 +72,12 @@ class RoomsControllerSpec extends BaseSpec with GuiceOneAppPerTest with Injectin
       room.get.bookings.head mustBe newBooking
     }
 
-    "return http 422 when the room does not exist" in {
+    "return http 404 when the room does not exist" in {
       val newBooking = Booking(LocalDateTime.now(), Duration.ofMinutes(25))
       val postRequest = FakeRequest(POST, "/rooms/Foo").withJsonBody(Json.toJson(newBooking))
       val result = route(app, postRequest).get
 
-      status(result) mustBe UNPROCESSABLE_ENTITY
+      status(result) mustBe NOT_FOUND
     }
   }
 }

@@ -14,6 +14,8 @@ object RoomRepositoryActor {
   case class FindRoom(name: String)
 
   case class AddBooking(roomName: String, booking: Booking)
+
+  case class BookingError(httpStatus: Int, message: String)
 }
 
 class RoomRepositoryActor @Inject() (repo: RoomRepository) extends Actor {
@@ -27,8 +29,8 @@ class RoomRepositoryActor @Inject() (repo: RoomRepository) extends Actor {
     case AddBooking(roomName: String, booking: Booking) =>
       val maybeRoom = repo.findRoom(roomName)
       val bookingResult = for {
-        room <- Either.cond(maybeRoom.isDefined, maybeRoom.get, "Room not found")
-        booking <- Validation.validateBooking(room, booking)
+        room <- Either.cond(maybeRoom.isDefined, maybeRoom.get, BookingError(404, "Room not found"))
+        booking <- Validation.validateBooking(room, booking).left.map(BookingError(422, _))
       } yield {
         repo.addBooking(room, booking)
       }

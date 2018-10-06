@@ -26,6 +26,7 @@ POST /rooms/{name}      adds a booking (in Json) to a given room
 
 Special error statuses:
 
+* Http 404:   room not found
 * Http 422:   booking invalid
 
 Example of a booking Json:
