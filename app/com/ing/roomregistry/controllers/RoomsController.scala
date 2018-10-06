@@ -12,6 +12,7 @@ import com.ing.roomregistry.util.Availability
 import com.typesafe.scalalogging.Logger
 import javax.inject._
 import org.slf4j.LoggerFactory
+import play.api.inject.ApplicationLifecycle
 import play.api.libs.json._
 import play.api.mvc._
 
@@ -22,6 +23,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class RoomsController @Inject()(system: ActorSystem,
                                 cc: ControllerComponents,
+                                lifeCycle: ApplicationLifecycle,
                                 @Named("room-repository-actor") repoActor: ActorRef)
                                (implicit ec: ExecutionContext) extends AbstractController(cc) {
 
@@ -30,10 +32,13 @@ class RoomsController @Inject()(system: ActorSystem,
 
   private val logger = Logger(LoggerFactory.getLogger("RoomsController"))
 
+  lifeCycle.addStopHook { () =>
+    Future.successful {
+      logger.info("Application is shutting down ...")
+    }
+  }
 
   def listAllRooms() = Action.async { request: Request[AnyContent] =>
-    logger.info(s"Incoming request: $request")
-
     val now = LocalDateTime.now()
     (repoActor ? GetAllRooms()).mapTo[Iterable[Room]].map { allRooms =>
       val sortedRooms = allRooms.toList.sortBy(_.name)
@@ -47,8 +52,6 @@ class RoomsController @Inject()(system: ActorSystem,
   }
 
   def roomDetails(name: String) = Action.async { request: Request[AnyContent] =>
-    logger.info(s"Incoming request: $request")
-
     (repoActor ? FindRoom(name)).mapTo[Option[Room]].map { maybeRoom =>
       maybeRoom.map { room =>
         val sortedBookings = room.bookings.sortBy(_.time)
@@ -64,8 +67,6 @@ class RoomsController @Inject()(system: ActorSystem,
   }
 
   def bookRoom(name: String) = Action(parse.json).async { request =>
-    logger.info(s"Incoming request: $request")
-
     val parsedBooking = request.body.validate[Booking]
     if (parsedBooking.isError) {
       Future.successful(BadRequest("Invalid Json"))
