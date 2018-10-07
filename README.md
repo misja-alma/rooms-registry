@@ -24,13 +24,16 @@ Special error statuses:
 POST /rooms/{name}      adds a booking (in Json) to a given room
 ```
 
-Special error statuses:
-
-* Http 404:   room not found
-* Http 422:   booking invalid
+Booking format:
+* time:      the start time in format "yyyy-MM-dd'T'HH-mm"
+* duration:  the duration of the booking in ISO 8601 format
 
 Example of a booking Json:
 
 ```
-{"time":"2018-10-05T13:26:44.0","duration":"PT25M"}
+{"time":"2018-10-05T13:25","duration":"PT25M"}
 ```
+Special error statuses:
+
+* Http 404:   room not found
+* Http 422:   booking invalid

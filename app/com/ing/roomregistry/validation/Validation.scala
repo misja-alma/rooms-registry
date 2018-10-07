@@ -1,9 +1,9 @@
-package com.ing.roomregistry.util
+package com.ing.roomregistry.validation
 
 import java.time.LocalDateTime
 
 import com.ing.roomregistry.model.{Booking, Room}
-import com.ing.roomregistry.util.Availability.isRoomAvailableAt
+import com.ing.roomregistry.validation.Availability.isRoomAvailableAt
 import cats.kernel.Semigroup
 import cats.syntax.semigroup._
 

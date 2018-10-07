@@ -7,8 +7,8 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.ing.roomregistry.model.JsonSerialization._
 import com.ing.roomregistry.model._
-import com.ing.roomregistry.repository.RoomRepositoryActor._
-import com.ing.roomregistry.util.Availability
+import com.ing.roomregistry.booking.BookingActor._
+import com.ing.roomregistry.validation.Availability
 import com.typesafe.scalalogging.Logger
 import javax.inject._
 import org.slf4j.LoggerFactory
@@ -27,8 +27,8 @@ class RoomsController @Inject()(system: ActorSystem,
                                 @Named("room-repository-actor") repoActor: ActorRef)
                                (implicit ec: ExecutionContext) extends AbstractController(cc) {
 
-  implicit val repoTimeout: Timeout = 5.seconds
-  implicit val localDateTimeOrdering: Ordering[LocalDateTime] = Ordering.by(_.toEpochSecond(ZoneOffset.UTC))
+  implicit private val repoTimeout: Timeout = 5.seconds
+  implicit private val localDateTimeOrdering: Ordering[LocalDateTime] = Ordering.by(_.toEpochSecond(ZoneOffset.UTC))
 
   private val logger = Logger(LoggerFactory.getLogger("RoomsController"))
 
@@ -38,7 +38,7 @@ class RoomsController @Inject()(system: ActorSystem,
     }
   }
 
-  def listAllRooms() = Action.async { request: Request[AnyContent] =>
+  def listAllRooms() = Action.async { _ =>
     val now = LocalDateTime.now()
     (repoActor ? GetAllRooms()).mapTo[Iterable[Room]].map { allRooms =>
       val sortedRooms = allRooms.toList.sortBy(_.name)
@@ -51,7 +51,7 @@ class RoomsController @Inject()(system: ActorSystem,
     }
   }
 
-  def roomDetails(name: String) = Action.async { request: Request[AnyContent] =>
+  def roomDetails(name: String) = Action.async { _ =>
     (repoActor ? FindRoom(name)).mapTo[Option[Room]].map { maybeRoom =>
       maybeRoom.map { room =>
         val sortedBookings = room.bookings.sortBy(_.time)

@@ -1,4 +1,4 @@
-package com.ing.roomregistry.repository
+package com.ing.roomregistry.booking
 
 import com.google.inject.Inject
 import com.ing.roomregistry.model.{Booking, Room}

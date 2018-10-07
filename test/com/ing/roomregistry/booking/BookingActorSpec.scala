@@ -1,21 +1,22 @@
-package com.ing.roomregistry.repository
+package com.ing.roomregistry.booking
 
 import java.time.{Duration, LocalDateTime}
 
 import akka.actor.{ActorSystem, Props}
 import akka.testkit.{DefaultTimeout, ImplicitSender, TestKit, TestProbe}
 import com.ing.roomregistry.model.{Booking, Room}
-import com.ing.roomregistry.repository.RoomRepositoryActor.{AddBooking, BookingError}
+import com.ing.roomregistry.booking.BookingActor.{AddBooking, BookingError}
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{Matchers, WordSpecLike}
+import play.api.http.Status._
 
-class RoomRepositoryActorSpec extends TestKit(ActorSystem("RoomRepositoryActorSpec"))
+class BookingActorSpec extends TestKit(ActorSystem("RoomRepositoryActorSpec"))
   with DefaultTimeout with ImplicitSender
   with WordSpecLike with Matchers {
 
   private val config = ConfigFactory.load()
 
-  private def createRepoActor() = system.actorOf(Props(new RoomRepositoryActor(new RoomRepository(config))))
+  private def createRepoActor() = system.actorOf(Props(new BookingActor(new RoomRepository(config))))
 
   "addBooking" should {
 
@@ -37,7 +38,7 @@ class RoomRepositoryActorSpec extends TestKit(ActorSystem("RoomRepositoryActorSp
 
       actor.tell(AddBooking("Foo", newBooking), probe.ref)
 
-      probe.expectMsg(Left(BookingError(404, "Room not found")))
+      probe.expectMsg(Left(BookingError(NOT_FOUND, "Room not found")))
     }
 
     "return Left with an appropriate booking error when the booking was not valid" in {
@@ -47,7 +48,7 @@ class RoomRepositoryActorSpec extends TestKit(ActorSystem("RoomRepositoryActorSp
 
       actor.tell(AddBooking("Paris", invalidBooking), probe.ref)
 
-      probe.expectMsg(Left(BookingError(422, "The duration should be bigger than zero")))
+      probe.expectMsg(Left(BookingError(UNPROCESSABLE_ENTITY, "The duration should be bigger than zero")))
     }
   }
 }

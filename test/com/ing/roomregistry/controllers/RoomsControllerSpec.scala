@@ -1,12 +1,13 @@
 package com.ing.roomregistry.controllers
 
-import java.time.{Duration, LocalDateTime}
+import java.time.temporal.ChronoUnit
+import java.time.{Duration, LocalDateTime, ZoneOffset}
 
 import com.ing.roomregistry.BaseSpec
+import com.ing.roomregistry.booking.RoomRepository
 import com.ing.roomregistry.model.JsonSerialization._
 import com.ing.roomregistry.model.{Booking, Room, RoomAvailability}
-import com.ing.roomregistry.repository.RoomRepository
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import org.scalatestplus.play.guice._
 import play.api.libs.json.Json
 import play.api.test.Helpers._
@@ -14,11 +15,15 @@ import play.api.test._
 
 
 class RoomsControllerSpec extends BaseSpec with GuiceOneAppPerTest with Injecting {
-  private val config = ConfigFactory.load()
+  implicit private val localDateTimeOrdering: Ordering[LocalDateTime] = Ordering.by(_.toEpochSecond(ZoneOffset.UTC))
+
+  private val config = ConfigFactory.load().withValue(
+    "rooms-registry.initial-rooms-json",
+    ConfigValueFactory.fromAnyRef("/populated-rooms.json"))
 
   "RoomsController GET /rooms" should {
 
-    "return all the rooms with their availability" in {
+    "return all the rooms with their availability, sorted by name" in {
       val request = FakeRequest(GET, "/rooms")
       val rooms = route(app, request).get
 
@@ -34,29 +39,35 @@ class RoomsControllerSpec extends BaseSpec with GuiceOneAppPerTest with Injectin
 
   "RoomsController GET /rooms/{name}" should {
 
-    "return the details of the room" in {
+    "return the room with its bookings, sorted by time" in {
       val request = FakeRequest(GET, "/rooms/Paris")
       val roomDetails = route(app, request).get
 
       status(roomDetails) mustBe OK
       contentType(roomDetails) mustBe Some("application/json")
 
-      val json = Json.toJson(RoomRepository.loadInitialRooms(config)("Paris"))
+      val room = RoomRepository.loadInitialRooms(config)("Paris")
+      val sortedBookings = room.bookings.sortBy(_.time)
+      val json = Json.toJson(room.copy(bookings = sortedBookings))
       contentAsString(roomDetails) mustBe json.toString
     }
 
     "return http 404 when the room does not exist" in {
       val request = FakeRequest(GET, "/rooms/Foo")
-      val rooms = route(app, request).get
+      val room = route(app, request).get
 
-      status(rooms) mustBe NOT_FOUND
+      status(room) mustBe NOT_FOUND
     }
   }
 
   "RoomsController POST /rooms/{name}" should {
 
     "update the booking of the room" in {
-      val newBooking = Booking(LocalDateTime.now().plusMinutes(5), Duration.ofMinutes(25))
+      val newBooking = Booking(LocalDateTime.now()
+        .plusMinutes(5)
+        .truncatedTo(ChronoUnit.MINUTES),
+        Duration.ofMinutes(25)
+      )
       val postRequest = FakeRequest(POST, "/rooms/Paris").withJsonBody(Json.toJson(newBooking))
       val result = route(app, postRequest).get
 

@@ -1,11 +1,19 @@
 package com.ing.roomregistry.model
 
+import java.time.format.DateTimeFormatter
 import java.time.{Duration, LocalDateTime}
 
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{JsPath, Reads, Writes}
+import play.api.libs.json.{JsPath, JsString, Reads, Writes}
 
 object JsonSerialization {
+  private val localDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
+
+  implicit val localDateTimeWrites: Writes[LocalDateTime] = Writes {
+    dt: LocalDateTime => JsString(dt.format(localDateTimeFormatter))
+  }
+
+  implicit val localDateTimeReads: Reads[LocalDateTime] = Reads.localDateTimeReads(localDateTimeFormatter)
 
   implicit val bookingWrites: Writes[Booking] = (
     (JsPath \ "time").write[LocalDateTime] and

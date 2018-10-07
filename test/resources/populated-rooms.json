@@ -1,0 +1,10 @@
+[
+  {"name":"Paris","bookings":[]},
+  {"name":"Amsterdam","bookings":[]},
+  {"name":"Berlin","bookings":[]},
+  {"name":"London","bookings":[
+    {"time":"2018-10-05T14:25","duration":"PT25M"},
+    {"time":"2018-10-05T13:25","duration":"PT25M"},
+    {"time":"2018-10-05T15:25","duration":"PT25M"}
+  ]}
+]
