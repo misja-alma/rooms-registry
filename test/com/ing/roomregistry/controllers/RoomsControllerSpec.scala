@@ -21,10 +21,10 @@ class RoomsControllerSpec extends BaseSpec with GuiceOneAppPerTest with Injectin
     "rooms-registry.initial-rooms-json",
     ConfigValueFactory.fromAnyRef("/populated-rooms.json"))
 
-  "RoomsController GET /rooms" should {
+  "RoomsController GET /api/rooms" should {
 
     "return all the rooms with their availability, sorted by name" in {
-      val request = FakeRequest(GET, "/rooms")
+      val request = FakeRequest(GET, "/api/rooms")
       val rooms = route(app, request).get
 
       status(rooms) mustBe OK
@@ -37,10 +37,10 @@ class RoomsControllerSpec extends BaseSpec with GuiceOneAppPerTest with Injectin
     }
   }
 
-  "RoomsController GET /rooms/{name}" should {
+  "RoomsController GET /api/rooms/{name}" should {
 
     "return the room with its bookings, sorted by time" in {
-      val request = FakeRequest(GET, "/rooms/Paris")
+      val request = FakeRequest(GET, "/api/rooms/Paris")
       val roomDetails = route(app, request).get
 
       status(roomDetails) mustBe OK
@@ -53,14 +53,14 @@ class RoomsControllerSpec extends BaseSpec with GuiceOneAppPerTest with Injectin
     }
 
     "return http 404 when the room does not exist" in {
-      val request = FakeRequest(GET, "/rooms/Foo")
+      val request = FakeRequest(GET, "/api/rooms/Foo")
       val room = route(app, request).get
 
       status(room) mustBe NOT_FOUND
     }
   }
 
-  "RoomsController POST /rooms/{name}" should {
+  "RoomsController POST /api/rooms/{name}" should {
 
     "update the booking of the room" in {
       val newBooking = Booking(LocalDateTime.now()
@@ -68,12 +68,12 @@ class RoomsControllerSpec extends BaseSpec with GuiceOneAppPerTest with Injectin
         .truncatedTo(ChronoUnit.MINUTES),
         Duration.ofMinutes(25)
       )
-      val postRequest = FakeRequest(POST, "/rooms/Paris").withJsonBody(Json.toJson(newBooking))
+      val postRequest = FakeRequest(POST, "/api/rooms/Paris").withJsonBody(Json.toJson(newBooking))
       val result = route(app, postRequest).get
 
       status(result) mustBe OK
 
-      val getRequest = FakeRequest(GET, "/rooms/Paris")
+      val getRequest = FakeRequest(GET, "/api/rooms/Paris")
       val roomDetails = route(app, getRequest).get
 
       status(roomDetails) mustBe OK
@@ -85,7 +85,7 @@ class RoomsControllerSpec extends BaseSpec with GuiceOneAppPerTest with Injectin
 
     "return http 404 when the room does not exist" in {
       val newBooking = Booking(LocalDateTime.now(), Duration.ofMinutes(25))
-      val postRequest = FakeRequest(POST, "/rooms/Foo").withJsonBody(Json.toJson(newBooking))
+      val postRequest = FakeRequest(POST, "/api/rooms/Foo").withJsonBody(Json.toJson(newBooking))
       val result = route(app, postRequest).get
 
       status(result) mustBe NOT_FOUND

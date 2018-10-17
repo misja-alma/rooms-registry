@@ -7,7 +7,7 @@ import com.ing.roomregistry.model.{Booking, Room}
 
 class ValidationSpec extends BaseSpec {
   
-  private val date = LocalDate.of(2018, 10, 10)
+  private val date = LocalDate.now.plusDays(1)
   private val bookings = List(
     Booking(dateTime(date, 11, 0), Duration.ofMinutes(30)),
     Booking(dateTime(date, 13, 0), Duration.ofMinutes(30))

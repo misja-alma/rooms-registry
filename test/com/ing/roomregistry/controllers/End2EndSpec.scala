@@ -15,24 +15,24 @@ class End2EndSpec extends PlaySpec with GuiceOneServerPerSuite {
   private val wsClient = app.injector.instanceOf[WSClient]
   private val address = s"localhost:$port"
 
-  "The application should respond at GET /rooms" in {
-    val testURL = s"http://$address/rooms"
+  "The application should respond at GET /api/rooms" in {
+    val testURL = s"http://$address/api/rooms"
 
     val response = await(wsClient.url(testURL).get())
 
     response.status mustBe OK
   }
 
-  "The application should respond at GET /rooms/{name}" in {
-    val testURL = s"http://$address/rooms/Paris"
+  "The application should respond at GET /api/rooms/{name}" in {
+    val testURL = s"http://$address/api/rooms/Paris"
 
     val response = await(wsClient.url(testURL).get())
 
     response.status mustBe OK
   }
 
-  "The application should respond at POST /rooms/{name}" in {
-    val testURL = s"http://$address/rooms/Paris"
+  "The application should respond at POST /api/rooms/{name}" in {
+    val testURL = s"http://$address/api/rooms/Paris"
     val newBooking = Booking(LocalDateTime.now().plusMinutes(5), Duration.ofMinutes(25))
 
     val response = await(wsClient.url(testURL).post(Json.toJson(newBooking)))

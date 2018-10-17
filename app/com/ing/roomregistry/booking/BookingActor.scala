@@ -2,8 +2,9 @@ package com.ing.roomregistry.booking
 
 import akka.actor._
 import com.google.inject.Inject
-import com.ing.roomregistry.model.Booking
+import com.ing.roomregistry.model.{Booking, Room}
 import com.ing.roomregistry.validation.Validation
+import com.typesafe.config.Config
 import play.api.http.Status._
 
 object BookingActor {
@@ -21,23 +22,33 @@ object BookingActor {
   case class BookingError(httpStatus: Int, message: String)
 }
 
-class BookingActor @Inject()(repo: RoomRepository) extends Actor {
+class BookingActor @Inject()(config: Config) extends Actor {
   import BookingActor._
 
-  def receive = {
+  def receive = doReceive(RoomRepository.loadInitialRooms(config))
+
+  def doReceive(rooms: Map[String, Room]): Receive = {
     case GetAllRooms() =>
-      sender() ! repo.allRooms
+      sender() ! rooms.values
+
     case FindRoom(name: String) =>
-      sender() ! repo.findRoom(name)
+      sender() ! rooms.get(name)
+
     case AddBooking(roomName: String, booking: Booking) =>
-      val maybeRoom = repo.findRoom(roomName)
+      val maybeRoom = rooms.get(roomName)
       val bookingResult = for {
         room <- Either.cond(maybeRoom.isDefined, maybeRoom.get, BookingError(NOT_FOUND, "Room not found"))
         booking <- Validation.validateBooking(room, booking).left.map(BookingError(UNPROCESSABLE_ENTITY, _))
       } yield {
-        repo.addBooking(room, booking)
+        val updatedRoom = room.copy(bookings = booking +: room.bookings)
+        val newRooms = rooms + (room.name -> updatedRoom)
+        context.become(doReceive(newRooms))
+
+        updatedRoom
       }
+
       sender() ! bookingResult
+
     case unknown =>
       sys.error(s"Can't handle message of unknown type: $unknown")
   }

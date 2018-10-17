@@ -38,6 +38,15 @@ class RoomsController @Inject()(system: ActorSystem,
     }
   }
 
+//  def index = Action { implicit request =>
+//    Ok(views.html.index())
+//  }
+
+  private def handleError(message: String): PartialFunction[Throwable, Result] = { case ex =>
+    logger.error (message, ex)
+    InternalServerError
+  }
+
   def listAllRooms() = Action.async { _ =>
     val now = LocalDateTime.now()
     (repoActor ? GetAllRooms()).mapTo[Iterable[Room]].map { allRooms =>
@@ -45,10 +54,7 @@ class RoomsController @Inject()(system: ActorSystem,
       val roomsWithAvailability = sortedRooms.map(room =>
         RoomAvailability(room.name, Availability.isRoomAvailableAt(room, now)))
       Ok(Json.toJson(roomsWithAvailability))
-    }.recover { case ex =>
-      logger.error ("Error when retrieving list of rooms", ex)
-      InternalServerError
-    }
+    }.recover ( handleError("Error when retrieving room list") )
   }
 
   def roomDetails(name: String) = Action.async { _ =>
@@ -60,10 +66,7 @@ class RoomsController @Inject()(system: ActorSystem,
       }.getOrElse (
         NotFound
       )
-    }.recover { case ex =>
-      logger.error ("Error when retrieving room details", ex)
-      InternalServerError
-    }
+    }.recover ( handleError("Error when retrieving room details") )
   }
 
   def bookRoom(name: String) = Action(parse.json).async { request =>
@@ -71,17 +74,12 @@ class RoomsController @Inject()(system: ActorSystem,
     if (parsedBooking.isError) {
       Future.successful(BadRequest("Invalid Json"))
     } else {
-      (repoActor ? AddBooking(name, parsedBooking.get)).mapTo[Either[BookingError, Room]].map { updatedRoomOrError =>
-        if (updatedRoomOrError.isRight) {
+      (repoActor ? AddBooking(name, parsedBooking.get)).mapTo[Either[BookingError, Room]].map {
+        case Right(_) =>
           Ok("Booking successful")
-        } else {
-          val error = updatedRoomOrError.left.get
+        case Left(error) =>
           new Status(error.httpStatus)(error.message)
-        }
-      }.recover { case ex =>
-        logger.error ("Error when adding booking", ex)
-        InternalServerError
-      }
+      }.recover ( handleError("Error when adding booking") )
     }
   }
 }

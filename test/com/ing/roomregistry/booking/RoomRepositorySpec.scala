@@ -26,31 +26,4 @@ class RoomRepositorySpec extends BaseSpec {
       } must have message "Could not initialize the room repository"
     }
   }
-
-  "addBooking" should {
-
-    "add the booking to the room and persist it" in {
-      val roomRepository = new RoomRepository(config)
-      val paris = roomRepository.findRoom("Paris").get
-      val time = dateTime(LocalDate.of(2018, 10, 20), 9, 0)
-
-      val result = roomRepository.addBooking(paris, Booking(time, Duration.ofMinutes(20)))
-
-      result.name mustBe "Paris"
-      result.bookings.size mustBe 1
-      result.bookings.head.time mustBe time
-
-      roomRepository.findRoom("Paris").get.bookings.size mustBe 1
-    }
-  }
-
-  "findRoom" should {
-
-    "return None when the room is not found" in {
-      val roomRepository = new RoomRepository(config)
-      val notFound = roomRepository.findRoom("Foo")
-
-      notFound.isEmpty mustBe true
-    }
-  }
 }

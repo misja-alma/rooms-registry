@@ -1,0 +1,16 @@
+<h1>
+All Rooms
+</h1>
+<div>
+  <table  style="width:100%">
+    <tr>
+      <th>Name</th>
+      <th>Available</th>
+    </tr>
+    <tr *ngFor="let room of rooms">
+      <td> {{ room.name }} </td>
+      <td> {{ room.available }} </td>
+    </tr>
+  </table>
+</div>
+

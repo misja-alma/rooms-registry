@@ -1,0 +1,14 @@
+@main("Welcome to Play") {
+<div ng-app>
+    <h1>Welcome to Scala Play + Bootstrap + AngularJS</h1>
+    <form role="form">
+        <div class="form-group">
+            <label for="sometext">Type in some text:</label>
+            <input id="sometext" class="form-control" ng-model="sometext" autofocus>
+        </div>
+    </form>
+    <div class="alert alert-success" ng-show="sometext">
+        <strong>You typed:</strong> {{ sometext }}
+    </div>
+</div>
+}
